@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obter Informações por Letra</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+    <h1>Obter Informações por Letra</h1>
+
+    <form id="letraForm">
+        <label for="letraInput">Digite a letra para encontrar a linha desejada:</label>
+        <input type="text" id="letraInput" name="letra" required>
+        <button type="submit">Buscar Informações</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        $(document).ready(function(){
+            $("#letraForm").submit(function(e){
+                e.preventDefault();
+                var letra = $("#letraInput").val();
+
+                $.ajax({
+                    url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRYcZwdsv29H7gU4IdxWS32HZ8L6XkTjzVD-Mt8bI9aAbunIWUOEzwKoN_TIy7vA5kijgyHjM7nmVqP/pub?output=csv',
+                    type: 'GET',
+                    success: function(data){
+                        var arquivo_csv = Papa.parse(data, {header: true, skipEmptyLines: true});
+                        
+                        try {
+                            var linha_desejada = arquivo_csv.data.find(row => row[Object.keys(row)[0]].toUpperCase() === letra.toUpperCase());
+
+                            if (linha_desejada) {
+                                var info_linha = JSON.stringify(linha_desejada, null, 2);
+                                $("#result").html("<h2>Informações da linha desejada:</h2><pre>" + info_linha + "</pre>");
+                            } else {
+                                $("#result").html("<p>Nenhuma linha encontrada com a letra " + letra + ".</p>");
+                            }
+                        } catch (error) {
+                            $("#result").html("<p>Erro: " + error.message + "</p>");
+                        }
+                    },
+                    error: function(){
+                        $("#result").html("<p>Erro ao obter o arquivo CSV.</p>");
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+</body>
+</html>
